@@ -8,6 +8,7 @@ import (
 
 type Service interface {
 	GenerateToken(userID int) (string, error)
+	ValidateToken(encodedToken string) (*jwt.Token, error)
 }
 
 type jwtService struct {

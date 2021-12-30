@@ -61,3 +61,60 @@ func (h *transactionHandler) GetUserTransactions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *transactionHandler) CreateTransaction(c *gin.Context) {
+
+	var input transaction.CreateTransactionInput
+
+	err := c.ShouldBindJSON(&input)
+
+	if err != nil {
+		errors := helper.FormatError(err)
+
+		errorMessage := gin.H{"errors": errors}
+
+		response := helper.APIResponse("Create transaction failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	input.User = currentUser
+
+	newTransaction, err := h.service.CreateTransaction(input)
+
+	if err != nil {
+		response := helper.APIResponse("Create transaction failed", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("New user transaction", http.StatusOK, "success", transaction.FormatTransaction(newTransaction))
+
+	c.JSON(http.StatusOK, response)
+}
+
+func (h *transactionHandler) GetNotification(c *gin.Context) {
+	var input transaction.TransactionNotificationInput
+
+	err := c.ShouldBindJSON(&input)
+
+	if err != nil {
+		response := helper.APIResponse("Failed to get notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	err = h.service.ProcessPayment(input)
+
+	if err != nil {
+		response := helper.APIResponse("Failed to get notification", http.StatusBadRequest, "error", nil)
+		c.JSON(http.StatusBadRequest, response)
+		return
+	}
+
+	response := helper.APIResponse("New user transaction", http.StatusOK, "success", nil)
+
+	c.JSON(http.StatusOK, response)
+}

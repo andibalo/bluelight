@@ -188,3 +188,13 @@ func (h *userHandler) UploadAvatar(c *gin.Context) {
 
 	c.JSON(http.StatusOK, response)
 }
+
+func (h *userHandler) FetchUser(c *gin.Context) {
+	currentUser := c.MustGet("currentUser").(user.User)
+
+	formatUser := user.FormatUser(currentUser, "")
+
+	response := helper.APIResponse("Succesfully fetch user data", http.StatusOK, "success", formatUser)
+
+	c.JSON(http.StatusOK, response)
+}
